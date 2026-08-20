@@ -3,16 +3,13 @@ import json
 from pathlib import Path
 
 from dotenv import load_dotenv
-import google.generativeai as genai
+from google import genai
 
 # Load .env from backend folder
 load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 
 # Configure Gemini
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-
-# Load model
-model = genai.GenerativeModel("gemini-2.5-flash")
+client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 def analyze_resume(resume_text, target_role):
     prompt = f"""
@@ -58,7 +55,10 @@ Resume:
 {resume_text}
 """
 
-    response = model.generate_content(prompt)
+    response = client.models.generate_content(
+        model="gemini-3.6-flash",
+        contents=prompt
+    )
 
     text = response.text.strip()
 

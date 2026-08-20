@@ -9,6 +9,9 @@ from app.models.progress import Progress
 
 app = FastAPI(title="SkillBridge API")
 
+from app.database.db import engine, Base
+Base.metadata.create_all(bind=engine)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
