@@ -1,6 +1,6 @@
 import json
 
-from app.services.gemini_service import model
+from app.services.gemini_service import client
 from app.services.youtube_service import search_youtube
 
 
@@ -39,7 +39,10 @@ Skills:
 Return ONLY JSON.
 """
 
-    response = model.generate_content(prompt)
+    response = client.models.generate_content(
+        model="gemini-3.6-flash",
+        contents=prompt
+    )
 
     text = response.text.strip()
 
