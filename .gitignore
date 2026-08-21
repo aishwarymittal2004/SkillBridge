@@ -1,0 +1,26 @@
+# Environment variables
+.env
+backend/.env
+
+# Python virtual environments
+venv/
+.venv/
+env/
+backend/venv/
+backend/venv_old/
+backend/.venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Uploaded files
+backend/app/uploads/
+
+# IDE
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db

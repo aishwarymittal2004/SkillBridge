@@ -1,5 +1,6 @@
 from sqlalchemy import text
 from app.database.db import engine
+from app.database.db import engine
 
 try:
     with engine.connect() as connection:

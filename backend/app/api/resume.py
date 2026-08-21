@@ -28,46 +28,57 @@ def upload_resume(
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
 ):
-    os.makedirs(UPLOAD_DIR, exist_ok=True)
+    try:
+        os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-    file_path = os.path.join(UPLOAD_DIR, file.filename)
+        file_path = os.path.join(UPLOAD_DIR, file.filename)
 
-    with open(file_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
 
-    resume = Resume(
-        UserId=user_id,
-        TargetRole=target_role,
-        FileName=file.filename,
-        FilePath=file_path,
-    )
+        resume = Resume(
+            UserId=user_id,
+            TargetRole=target_role,
+            FileName=file.filename,
+            FilePath=file_path,
+        )
 
-    db.add(resume)
-    db.commit()
-    db.refresh(resume)
+        db.add(resume)
+        db.commit()
+        db.refresh(resume)
 
-    # Extract text
-    resume_text = extract_text(file_path)
+        # Extract text
+        resume_text = extract_text(file_path)
 
-    # Gemini analysis
-    gemini_response = analyze_resume(resume_text, target_role)
-    gemini_response["learning_resources"] = get_learning_resources(
-    gemini_response.get("missing_skills", [])
-    )
-    # Save analysis safely
-    analysis = ResumeAnalysis(
-        ResumeId=resume.ResumeId,
-        GeminiResponse=json.dumps(gemini_response, ensure_ascii=False),
-    )
+        # Gemini analysis
+        gemini_response = analyze_resume(resume_text, target_role)
+        try:
+            gemini_response["learning_resources"] = get_learning_resources(
+                gemini_response.get("missing_skills", [])
+            )
+        except Exception as resource_err:
+            # Don't fail the whole upload if resource fetch hits quota
+            gemini_response["learning_resources"] = []
+            gemini_response["resources_error"] = str(resource_err)[:200]
+        # Save analysis safely
+        analysis = ResumeAnalysis(
+            ResumeId=resume.ResumeId,
+            GeminiResponse=json.dumps(gemini_response, ensure_ascii=False),
+        )
 
-    db.add(analysis)
-    db.commit()
+        db.add(analysis)
+        db.commit()
 
-    return {
-        "message": "Resume analyzed successfully",
-        "resume_id": resume.ResumeId,
-        "analysis": gemini_response,
-    }
+        return {
+            "message": "Resume analyzed successfully",
+            "resume_id": resume.ResumeId,
+            "analysis": gemini_response,
+        }
+    except Exception as e:
+        import traceback
+        trace = traceback.format_exc()
+        from fastapi import HTTPException
+        raise HTTPException(status_code=500, detail=str(e) + "\n" + trace)
 
 
 # ----------------------------
@@ -218,6 +229,8 @@ def reanalyze_resume(resume_id: int, db: Session = Depends(get_db)):
     
 @router.get("/{resume_id}/resources")
 def get_resources(resume_id: int, db: Session = Depends(get_db)):
+    from fastapi import HTTPException
+
     analysis = (
         db.query(ResumeAnalysis)
         .filter(ResumeAnalysis.ResumeId == resume_id)
@@ -239,9 +252,39 @@ def get_resources(resume_id: int, db: Session = Depends(get_db)):
 
     analysis_json = json.loads(text)
 
-    skills = analysis_json.get("missing_skills", [])
+    # --- Use cached resources if already stored during upload ---
+    cached_resources = analysis_json.get("learning_resources")
+    if cached_resources:
+        return {
+            "resume_id": resume_id,
+            "resources": cached_resources
+        }
 
-    resources = get_learning_resources(skills)
+    # --- Fallback: call Gemini only if no cached data ---
+    skills = analysis_json.get("missing_skills", [])
+    if not skills:
+        return {"resume_id": resume_id, "resources": []}
+
+    try:
+        resources = get_learning_resources(skills)
+    except Exception as e:
+        error_msg = str(e)
+        if "429" in error_msg or "RESOURCE_EXHAUSTED" in error_msg:
+            raise HTTPException(
+                status_code=429,
+                detail="AI quota exceeded. Please try again later or upgrade your Gemini API plan."
+            )
+        if "503" in error_msg or "UNAVAILABLE" in error_msg:
+            raise HTTPException(
+                status_code=503,
+                detail="AI service temporarily unavailable. Please try again in a few minutes."
+            )
+        raise HTTPException(status_code=500, detail=error_msg)
+
+    # --- Cache the freshly fetched resources back into the DB ---
+    analysis_json["learning_resources"] = resources
+    analysis.GeminiResponse = json.dumps(analysis_json, ensure_ascii=False)
+    db.commit()
 
     return {
         "resume_id": resume_id,
