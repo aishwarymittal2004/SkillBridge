@@ -8,6 +8,7 @@ charset-normalizer==3.4.7
 click==8.4.2
 cryptography==49.0.0
 ecdsa==0.19.2
+email-validator==2.3.0
 fastapi==0.138.2
 google-genai==1.32.0
 google-api-core==2.31.0
