@@ -1,9 +1,7 @@
-import axios from "axios";
-
-const API = "http://localhost:8000";
+import API from "./api";
 
 export async function getProgress(resumeId) {
-  const res = await axios.get(`${API}/resume/${resumeId}/progress`);
+  const res = await API.get(`/resume/${resumeId}/progress`);
   return res.data;
 }
 
@@ -13,8 +11,8 @@ export async function updateProgress(
   itemName,
   completed
 ) {
-  await axios.post(
-    `${API}/resume/${resumeId}/progress`,
+  await API.post(
+    `/resume/${resumeId}/progress`,
     null,
     {
       params: {

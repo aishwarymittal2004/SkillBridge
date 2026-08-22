@@ -1,8 +1,6 @@
-import axios from "axios";
-
-const BASE_URL = "http://127.0.0.1:8000";
+import API from "./api";
 
 export const getResumeHistory = async (userId) => {
-  const res = await axios.get(`${BASE_URL}/resume/history/${userId}`);
+  const res = await API.get(`/resume/history/${userId}`);
   return res.data;
 };
