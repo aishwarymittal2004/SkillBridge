@@ -119,86 +119,6 @@ This enables users to follow a structured path from **current skill level to job
 
 ---
 
-## 🚀 Getting Started
-
-### Prerequisites
-
-* Node.js
-* Python 3.9+
-* PostgreSQL / SQL Server
-* Google Gemini API Key
-* YouTube Data API Key
-
----
-
-### 1️⃣ Backend Setup
-
-```bash
-cd backend
-
-python -m venv venv
-
-# Windows
-.\venv\Scripts\Activate.ps1
-
-# macOS/Linux
-source venv/bin/activate
-
-pip install -r requirements.txt
-```
-
-Run the FastAPI server:
-
-```bash
-python -m uvicorn app.main:app --reload
-```
-
-Backend runs at:
-
-```bash
-http://localhost:8000
-```
-
----
-
-### 2️⃣ Frontend Setup
-
-```bash
-cd frontend
-
-npm install
-
-npm run dev
-```
-
-Frontend runs at:
-
-```bash
-http://localhost:5173
-```
-
----
-
-### 3️⃣ Environment Variables
-
-Create a `.env` file inside the backend directory.
-
-```env
-GEMINI_API_KEY=your_gemini_api_key
-
-YOUTUBE_API_KEY=your_youtube_api_key
-
-DATABASE_URL=your_database_connection_string
-
-JWT_SECRET_KEY=your_jwt_secret
-
-JWT_ALGORITHM=HS256
-
-ACCESS_TOKEN_EXPIRE_MINUTES=30
-```
-
----
-
 ## 🏗️ Architecture
 
 SkillBridge follows a **Three-Tier Architecture**:
@@ -238,16 +158,6 @@ SkillBridge follows a **Three-Tier Architecture**:
 
 ---
 
-## 🌐 Deployment
-
-| Service          | Platform                |
-| ---------------- | ----------------------- |
-| Frontend         | Vercel                  |
-| Backend          | Render / Railway        |
-| Database         | PostgreSQL / SQL Server |
-| Containerization | Docker                  |
-
----
 
 ## 🙋‍♂️ Developer
 
