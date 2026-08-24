@@ -1,7 +1,3 @@
-# 🚀 SkillBridge
-
-### *Bridging the Gap Between Skills and Career Opportunities*
-
 <div align="center">
 
 <img src="https://capsule-render.vercel.app/api?type=waving&color=0:667eea,100:764ba2&height=200&section=header&text=SkillBridge&fontSize=80&fontColor=white&fontAlignY=38&desc=AI-Powered%20Career%20Growth%20Platform&descAlignY=60&descSize=18" />
